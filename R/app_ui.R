@@ -15,24 +15,24 @@
 #' @import data.table
 #' @import stringr
 app_ui <- function(request) {
-    
+
     page_sidebar(
-        
+
         title = header_ui("mainHeader"),
 
         window_title = "Odyssey",
-        
+
         # Sidebar ----------
         sidebar = sidebar(
-            
+
             source_ui("source"),
             table_options_ui("table_options")
-            
+
         ),
-        
+
         # Navigation ----------
         navset_underline(
-            
+
             # Home tab ----------
             home_ui("home"),
 
@@ -45,8 +45,11 @@ app_ui <- function(request) {
             # Map tab ----------
             map_ui("Map")
 
+            # Multilayer - Map tab ----------
+            map_ui("MultiLayerMap")
+
         ),
-        
+
         # Theme ----------
         theme = bs_theme(
             preset = "cerulean",
@@ -54,7 +57,7 @@ app_ui <- function(request) {
             fg = "#004164",
             base_font = font_google("Jost")
         ),
-        
+
         # Keep session alive ----------
         tags$script(
             "var timeout = setInterval(
