@@ -43,7 +43,7 @@ app_ui <- function(request) {
             table_ui("Table"),
 
             # Map tab ----------
-            map_ui("Map")
+            map_ui("Map"),
 
             # Multilayer - Map tab ----------
             map_multi_layer_ui("MultiLayerMap")
