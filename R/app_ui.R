@@ -46,7 +46,7 @@ app_ui <- function(request) {
             map_ui("Map"),
 
             # Multilayer - Map tab ----------
-            map_multi_layer_ui("MultiLayerMap")
+            mod_multi_layer_map_ui("MultiLayerMap")
 
         ),
 
