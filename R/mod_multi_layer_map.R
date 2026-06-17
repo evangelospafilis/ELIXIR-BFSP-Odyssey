@@ -126,7 +126,8 @@ map_server      <- function(id, df, area_bounds = NULL, selected_country = NULL)
                   options = layersControlOptions(collapsed = FALSE)
                 )
 
-                setView(view_lng, view_lat, zoom = view_zoom) |>
+                #setView(view_lng, view_lat, zoom = view_zoom) |>
+                setView(lng = 24.95, lat = 34.98, zoom = 11) |> #South Heraklion (Matala / Asterousia region)
                 leaflet.extras::addDrawToolbar(
                     targetGroup = "query_area",
                     polygonOptions = leaflet.extras::drawPolygonOptions(showArea = TRUE),
