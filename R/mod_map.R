@@ -115,7 +115,7 @@ map_server      <- function(id, df, area_bounds = NULL, selected_country = NULL)
                 addProviderTiles(CartoDB.Positron, group = "Base Map") |> # a minimalist, light-gray map basemap
                 # addProviderTiles(OpenStreetMap.HOT, group = "OSM Humanitarian") |>
                 # addProviderTiles(OpenTopoMap, group = "Topographic Map") |>
-                addProviderTiles(Esri.WorldImagery, group = "Satelite Map") |>
+                addProviderTiles(providers$Esri.WorldImagery, group = "Satelite Map") |>
 
                 setView(view_lng, view_lat, zoom = view_zoom) |>
 
