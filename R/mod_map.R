@@ -1,6 +1,6 @@
 
-#' UI Module: Map Tab 
-#' 
+#' UI Module: Map Tab
+#'
 #' Defines the user interface for the Map tab of the Odyssey Shiny application.
 #' This tab displays an interactive Leaflet map that visualizes molecular biodiversity data.
 #'
@@ -11,9 +11,9 @@
 #' @export
 #'
 map_ui <- function(id) {
-    
+
     ns <- NS(id)
-    
+
     nav_panel(
         title = tags$h6("Map", style = "color: #004164; margin-bottom: 10px; margin-top: 5px;"),
         fluidPage(
@@ -37,7 +37,7 @@ map_ui <- function(id) {
             )
         )
     )
-    
+
 
 }
 
@@ -46,18 +46,18 @@ map_ui <- function(id) {
 #' Server Module: Map tab
 #'
 #' Server logic for the Map tab of the Odyssey app.
-#' This module renders an interactive leaflet map displaying 
-#' sample collection locations. Points are clustered and popups 
-#' include sample metadata such as accession number, taxonomic 
+#' This module renders an interactive leaflet map displaying
+#' sample collection locations. Points are clustered and popups
+#' include sample metadata such as accession number, taxonomic
 #' division, and scientific name.
-#' 
+#'
 #' @param id Character string specifying the module namespace identifier.
-#' @param df A reactive \code{data.table} containing sequence records. 
+#' @param df A reactive \code{data.table} containing sequence records.
 #' @param area_bounds Optional reactive expression returning selected map bounds
 #'   used to display the active query area overlay.
 #' @param selected_country Optional reactive expression with the selected country
 #'   used to center the initial map view (e.g., Greece/Norway).
-#' 
+#'
 #' @return A \code{leaflet} map rendered in the UI.
 #'
 #' @export
@@ -113,7 +113,23 @@ map_server      <- function(id, df, area_bounds = NULL, selected_country = NULL)
             }
 
             base_map <- leaflet() |>
-                addProviderTiles("CartoDB.Positron") |>
+                #addProviderTiles("CartoDB.Positron") |>
+
+                addProviderTiles(CartoDB.Positron, group = "Base Map") |> # a minimalist, light-gray map basemap
+                addProviderTiles(OpenStreetMap.HOT, group = "OSM Humanitarian") |>
+                addProviderTiles(OpenTopoMap, group = "Topographic Map") |>
+                addProviderTiles(Esri.WorldImagery, group = "Satelite Map") |>
+
+                # Add a control panel to toggle layers on and off
+                addLayersControl(
+                  baseGroups = c("Base Map","OSM Humanitarian", "Topographic Map", "Satelite Map"),
+                  options = layersControlOptions(collapsed = FALSE)
+                )
+
+
+
+
+
                 setView(view_lng, view_lat, zoom = view_zoom) |>
                 leaflet.extras::addDrawToolbar(
                     targetGroup = "query_area",
@@ -222,6 +238,6 @@ map_server      <- function(id, df, area_bounds = NULL, selected_country = NULL)
 
             base_map
         })
-        
+
     })
 }
