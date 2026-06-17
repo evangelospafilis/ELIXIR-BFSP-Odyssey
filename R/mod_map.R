@@ -111,20 +111,21 @@ map_server      <- function(id, df, area_bounds = NULL, selected_country = NULL)
 
             base_map <- leaflet() |>
 
-                addProviderTiles("CartoDB.Positron") |>
-
-                # addProviderTiles(CartoDB.Positron, group = "Base Map") |> # a minimalist, light-gray map basemap
+                #addProviderTiles("CartoDB.Positron") |>
+                addProviderTiles(CartoDB.Positron, group = "Base Map") |> # a minimalist, light-gray map basemap
                 # addProviderTiles(OpenStreetMap.HOT, group = "OSM Humanitarian") |>
                 # addProviderTiles(OpenTopoMap, group = "Topographic Map") |>
-                # addProviderTiles(Esri.WorldImagery, group = "Satelite Map") |>
-
-                # Add a control panel to toggle layers on and off
-                # addLayersControl(
-                #   baseGroups = c("Base Map","OSM Humanitarian", "Topographic Map", "Satelite Map"),
-                #   options = layersControlOptions(collapsed = FALSE)
-                # )
+                addProviderTiles(Esri.WorldImagery, group = "Satelite Map") |>
 
                 setView(view_lng, view_lat, zoom = view_zoom) |>
+
+                # Add a control panel to toggle layers on and off
+                addLayersControl(
+                   #baseGroups = c("Base Map","OSM Humanitarian", "Topographic Map", "Satelite Map"),
+                   baseGroups = c("Base Map", "Satelite Map"),
+                   options = layersControlOptions(collapsed = FALSE)
+                )
+
                 leaflet.extras::addDrawToolbar(
                     targetGroup = "query_area",
                     polygonOptions = leaflet.extras::drawPolygonOptions(showArea = TRUE),
