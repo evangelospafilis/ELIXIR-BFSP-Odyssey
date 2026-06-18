@@ -109,22 +109,59 @@ map_server      <- function(id, df, area_bounds = NULL, selected_country = NULL)
                 view_zoom <- 6.5
             }
 
+            
+            # define Crete geoserver base WMS URL (excluding any parameters or fragments)
+            crete_geoserver_wms_url <- "https://gis.crete.gov.gr/geoserver/wms"
+            # name the mean annual relative humidity layer
+            crete_mean_annual_rltv_hmdty_layer <- "ypenras:ypen_ras_16_mesi_etisia_sxetiki_ygrasia"
+            crete_mean_annual_temperature_layer <- "ypenras:ypen_ras_01_mesi_etisia_thermokrasia_TG"
+            
+            
             base_map <- leaflet() |>
               
-                ## add map layters
+                ## add map layers
                 # a minimalist, light-gray map basemap
                 addProviderTiles("CartoDB.Positron", group = "Base Map") |> 
                 # high-quality topographic map, incl. Detailed Terrain: Displays elevation contour lines, hillshading, and accurate water bodies
                 addProviderTiles("OpenTopoMap", group = "Topographic Map") |> 
                 #a dynamic, high-resolution global map layer provided by Esri. It acts as a visual background, combining satellite and aerial photography to provide a near real-time, highly detailed picture of the Earth's landmasses for use in mapping and data analysis)
-                addProviderTiles("Esri.WorldImagery", group = "Satelite Map") |>
-                
+                addProviderTiles("Esri.WorldImagery", group = "Satellite Map") |>
+              
+
+                # Add a WMS layer for Crete's mean annual relative humidity
+                addWMSTiles(
+                  baseUrl = crete_geoserver_wms_url,
+                  layers = crete_mean_annual_rltv_hmdty_layer,
+                  options = WMSTileOptions(
+                    format = "image/png",        
+                    transparent = TRUE           
+                  ),
+                  attribution = "GIS - Region of Crete",
+                  group = "Crete mean annual relative humidity"
+                ) |>
+              
+                addWMSTiles(
+                  baseUrl = crete_geoserver_wms_url,
+                  layers = crete_mean_annual_temperature_layer,
+                  options = WMSTileOptions(
+                    format = "image/png",        
+                    transparent = TRUE           
+                  ),
+                  attribution = "GIS - Region of Crete",
+                  group = "Crete mean annual temperature"
+                ) |>
+                  
+              
+              
                 # Add a control panel to toggle layers on and off
                 addLayersControl(
-                    baseGroups = c("Base Map", "Topographic Map", "Satelite Map"),
-                    options = layersControlOptions(collapsed = FALSE)
+                  baseGroups = c("Base Map", "Topographic Map", "Satellite Map"),
+                  overlayGroups = c("Crete mean annual relative humidity","Crete mean annual temperature"),
+                  options = layersControlOptions(collapsed = FALSE)
                 ) |>
-
+                # Do not show Crete's layers on start up
+                hideGroup(c("Crete mean annual relative humidity","Crete mean annual temperature")) |>
+              
                 #set the initial map area
                 setView(view_lng, view_lat, zoom = view_zoom) |>
               
