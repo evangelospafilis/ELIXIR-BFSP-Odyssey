@@ -110,23 +110,25 @@ map_server      <- function(id, df, area_bounds = NULL, selected_country = NULL)
             }
 
             base_map <- leaflet() |>
-
-                #addProviderTiles("CartoDB.Positron") |>
-                addProviderTiles(CartoDB.Positron, group = "Base Map") |> # a minimalist, light-gray map basemap
-                # addProviderTiles(OpenStreetMap.HOT, group = "OSM Humanitarian") |>
-                # addProviderTiles(OpenTopoMap, group = "Topographic Map") |>
-                addProviderTiles(providers$Esri.WorldImagery, group = "Satelite Map") |>
-
-                setView(view_lng, view_lat, zoom = view_zoom) |>
-
+              
+                ## add map layters
+                # a minimalist, light-gray map basemap
+                addProviderTiles("CartoDB.Positron", group = "Base Map") |> 
+                # high-quality topographic map, incl. Detailed Terrain: Displays elevation contour lines, hillshading, and accurate water bodies
+                addProviderTiles("OpenTopoMap", group = "Topographic Map") |> 
+                #a dynamic, high-resolution global map layer provided by Esri. It acts as a visual background, combining satellite and aerial photography to provide a near real-time, highly detailed picture of the Earth's landmasses for use in mapping and data analysis)
+                addProviderTiles("Esri.WorldImagery", group = "Satelite Map") |>
+                
                 # Add a control panel to toggle layers on and off
                 addLayersControl(
-                   #baseGroups = c("Base Map","OSM Humanitarian", "Topographic Map", "Satelite Map"),
-                   baseGroups = c("Base Map", "Satelite Map"),
-                   options = layersControlOptions(collapsed = FALSE)
-                )
+                    baseGroups = c("Base Map", "Topographic Map", "Satelite Map"),
+                    options = layersControlOptions(collapsed = FALSE)
+                ) |>
 
-                leaflet.extras::addDrawToolbar(
+                #set the initial map area
+                setView(view_lng, view_lat, zoom = view_zoom) |>
+              
+              leaflet.extras::addDrawToolbar(
                     targetGroup = "query_area",
                     polygonOptions = leaflet.extras::drawPolygonOptions(showArea = TRUE),
                     rectangleOptions = leaflet.extras::drawRectangleOptions(),
