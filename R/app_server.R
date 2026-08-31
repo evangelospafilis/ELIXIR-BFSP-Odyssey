@@ -261,34 +261,49 @@ app_server <- function(input, output, session) {
     
     
     ##ep edit starts here
+    #add WMS layer handling
     observeEvent(input$add_wms_button, {
       
       req(input$wms_url, input$wms_layer,  input$wms_title) #cross-check these values do exit
       
-      leafletProxy("map") %>% #access and edit the existing map without requiring any redraw
+      # 1. Start the proxy of the leaflet map
+      proxy_to_map <- leafletProxy("map") #access and edit the existing map without requiring any redraw
         
-        clearGroup("dynamic_wms") %>% #clear previous WMS layer, if any
-        
+      # Read the value from our custom environment using app_globals$
+      prev_wms <- app_globals$map_previously_loaded_wms
+      
+      # Clear previously added wms layer ONLY if it is not empty
+      if (exists("prev_wms") && length(prev_wms) == 1 && prev_wms != "") {
+        proxy_to_map <- proxy_to_map %>% clearGroup(prev_wms)
+      }
+      
+      proxy_to_map  %>% 
         addWMSTiles(
-          baseUrl = input$wms_url,
-          layers = input$wms_layer,
-          options = WMSTileOptions(format = "image/png", transparent = TRUE),
-          group = input$wms_title,
-          ) %>% #add the WMS tile
-          
-        addLayersControl(
-        #relad the map base groups
-        baseGroups = MAP_BASE_GROUPS,  #defined in globals.R
+            baseUrl = input$wms_url,
+            layers = input$wms_layer,
+            options = WMSTileOptions(format = "image/png", transparent = TRUE),
+            group = input$wms_title,
+            ) %>% #add the WMS tile
+            
+          addLayersControl(
+          #relad the map base groups
+          baseGroups = MAP_BASE_GROUPS,  #defined in globals.R
 
-        # reload and update the overlay groups
-        overlayGroups = c(MAP_OVERLAY_GROUPS,input$wms_title), #defined in globals.R
-        #overlayGroups = c(overlayGroups,  input$wms_title),
+          # reload and update the overlay groups
+          overlayGroups = c(MAP_OVERLAY_GROUPS,input$wms_title), #defined in globals.R
+          #overlayGroups = c(overlayGroups,  input$wms_title),
         
-        #show all layers
-        options = layersControlOptions(collapsed = FALSE)
+          #show all layers
+          options = layersControlOptions(collapsed = FALSE)
         )
       
+      # update the global variable with the new title layer title for the next turn
+      app_globals$map_previously_loaded_wms <- input$wms_title
+      
+      #log
       print(paste(input$wms_title, "WMS layer has been added to the map"))
+      
+      #UI feedback
       showNotification(
         ui = paste(input$wms_title, "WMS layer has been added to the map"),
         type = "message",
