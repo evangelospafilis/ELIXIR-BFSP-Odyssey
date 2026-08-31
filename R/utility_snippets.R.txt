@@ -39,7 +39,8 @@ https://gis.crete.gov.gr/geoserver/wms
 gisvec:env_pol_habitats_18
 Crete Natura 2000 #as title
 
-## HCMR Geoserver
+## HCMR Geoserver, https://geoserver.hcmr.gr/geoserver/web/wicket/bookmarkable/org.geoserver.web.demo.MapPreviewPage?0&filter=false&filter=false
+
 https://geoserver.hcmr.gr/geoserver/EMODNET_SHARED/wms
 EMODNET_SHARED:All_DDT(measurementscount)
 DDT Measurement count #as title
