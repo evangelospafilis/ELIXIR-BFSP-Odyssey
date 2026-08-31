@@ -4,6 +4,17 @@
 #' They are now mostly useful as examples, like a kind of README file
 #'
 
+### WMS layer sources
+
+https://data.gov.gr/organization/crete-2026 => search θερμοκρασία, βροχόπτωση, υγρασία κλπ
+
+e.g. 
+https://data.gov.gr/dataset/gis-per-kritis-wms-only-ypenras-ypen_ras_10_oliki_etisia_vroxoptosi_pr/resource/e924e243-1f92-4870-aacf-32d47d687dd3
+Προεπισκόπηση WMS layer
+URL: https://gis.crete.gov.gr/geoserver/wms#ypenras:ypen_ras_10_oliki_etisia_vroxoptosi_PR
+
+
+
 
 
 
