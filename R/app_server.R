@@ -422,7 +422,7 @@ app_server <- function(input, output, session) {
       # 9. Register track coordinates to custom variable environment for the next iteration cycle
       app_globals$map_previously_loaded_shapefile <- custom_layer_title
       
-      # Log execution
+      # Log
       print(paste("Successfully rendered:", custom_layer_title))
       
       # UI confirmation message
