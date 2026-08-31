@@ -261,7 +261,10 @@ app_server <- function(input, output, session) {
     
     
     ##ep edit starts here
-    #add WMS layer handling
+    
+    ###     ###     ###     ###     ###     ###     ###     ###     ###     ###     ###     ### 
+    
+    ###add WMS layer handling
     observeEvent(input$add_wms_button, {
       
       req(input$wms_url, input$wms_layer,  input$wms_title) #cross-check these values do exit
@@ -312,8 +315,118 @@ app_server <- function(input, output, session) {
       
     })
     
+    
+    ###     ###     ###     ###     ###     ###     ###     ###     ###     ###     ###     ### 
+    
+    ### Handle local Shapefile uploaded via .zip archive
     observeEvent(input$zip_file_load_button, {
-      print("shape file has been loaded")
+      # Check that a file has actually been uploaded
+      req(input$zip_file_load_button)
+      
+      # 1. Provide early visual feedback via Shiny Notification
+      showNotification("Processing uploaded ZIP archive...", type = "message", duration = 3)
+      
+      # 2. Setup paths for decompression
+      user_uploaded_file <- input$zip_file_load_button
+      extraction_temp_dir <- file.path(tempdir(), paste0("shp_extract_", round(runif(1, 1000, 9999))))
+      dir.create(extraction_temp_dir, showWarnings = FALSE)
+      
+      # 3. Safely decompress and parse the shapefile components
+      shape_data <- tryCatch({
+        utils::unzip(user_uploaded_file$datapath, exdir = extraction_temp_dir)
+        extracted_files <- list.files(extraction_temp_dir, recursive = TRUE, full.names = TRUE)
+        shp_file_path <- extracted_files[grep("\\.shp$", extracted_files, ignore.case = TRUE)]
+        
+        if (length(shp_file_path) == 0) {
+          stop("No .shp file found inside the uploaded ZIP archive.")
+        }
+        sf::st_read(shp_file_path, quiet = TRUE)
+      }, error = function(e) {
+        showNotification(paste("Error processing file:", e$message), type = "error", duration = 10)
+        return(NULL)
+      })
+      
+      if (is.null(shape_data)) return()
+      
+      # 4. Transform Coordinate Reference System (CRS) to WGS84 for Leaflet
+      shape_data_wgs84 <- tryCatch({
+        sf::st_transform(shape_data, crs = 4326)
+      }, error = function(e) {
+        showNotification("Could not project data to WGS84. Ensure your ZIP contains a valid .prj file.", type = "warning", duration = 7)
+        return(shape_data)
+      })
+      
+      # 5. Extract geometric architecture & establish map proxy layer targeting
+      geometry_profile <- as.character(sf::st_geometry_type(shape_data_wgs84, by_geometry = FALSE))
+      proxy_to_map <- leafletProxy("map")
+      custom_layer_title <- tools::file_path_sans_ext(user_uploaded_file$name)
+      
+      # 6. Clear any previously loaded uploaded vector layers
+      prev_uploaded_group <- app_globals$map_previously_loaded_shapefile
+      if (exists("prev_uploaded_group") && length(prev_uploaded_group) == 1 && prev_uploaded_group != "") {
+        proxy_to_map <- proxy_to_map %>% clearGroup(prev_uploaded_group)
+      }
+      
+      # 7. Create dynamic HTML popups containing all attribute columns
+      # We exclude the geometry column itself to keep only alphanumeric data
+      attribute_data <- sf::st_drop_geometry(shape_data_wgs84)
+      
+      popup_contents <- sapply(1:nrow(shape_data_wgs84), function(i) {
+        row_cells <- sapply(names(attribute_data), function(col_name) {
+          paste0("<tr>",
+                 "<strong style='color:#2b5769;'>", col_name, ": </strong>", 
+                 htmltools::htmlEscape(as.character(attribute_data[i, col_name])),
+                 "</tr><br/>")
+        })
+        # Wrap everything in a clean scrollable container
+        paste0("<div style='max-height:150px; overflow-y:auto; min-width:180px;'>", 
+               paste(row_cells, collapse = ""), 
+               "</div>")
+      })
+      
+      # 7b. Render spatial shapes on map dynamically with the generated popups
+      if (any(grepl("POLYGON", geometry_profile))) {
+        proxy_to_map <- proxy_to_map %>%
+          addPolygons(
+            data = shape_data_wgs84,
+            group = custom_layer_title,
+            popup = popup_contents, # Προσθήκη του Popup
+            color = "#E31A1C", weight = 2, fillColor = "#FC4E2A", fillOpacity = 0.4,
+            highlightOptions = highlightOptions(weight = 4, color = "yellow", bringToFront = TRUE)
+          )
+      } else if (any(grepl("POINT", geometry_profile))) {
+        proxy_to_map <- proxy_to_map %>%
+          addCircleMarkers(
+            data = shape_data_wgs84,
+            group = custom_layer_title,
+            popup = popup_contents, # Προσθήκη του Popup
+            radius = 5, color = "#1F78B4", fillColor = "#A6CEE3", fillOpacity = 0.8, weight = 1
+          )
+      } else if (any(grepl("LINE", geometry_profile))) {
+        proxy_to_map <- proxy_to_map %>%
+          addPolylines(
+            data = shape_data_wgs84,
+            group = custom_layer_title,
+            popup = popup_contents, # Προσθήκη του Popup
+            color = "#33A02C", weight = 3, opacity = 0.8
+          )
+      }
+      
+      # 8. Refresh map interface layer selectors with global environment profiles
+      proxy_to_map %>% addLayersControl(
+        baseGroups = MAP_BASE_GROUPS,
+        overlayGroups = c(MAP_OVERLAY_GROUPS, custom_layer_title),
+        options = layersControlOptions(collapsed = FALSE)
+      )
+      
+      # 9. Register track coordinates to custom variable environment for the next iteration cycle
+      app_globals$map_previously_loaded_shapefile <- custom_layer_title
+      
+      # Log execution
+      print(paste("Successfully rendered:", custom_layer_title))
+      
+      # UI confirmation message
+      showNotification(paste("Successfully rendered:", custom_layer_title), type = "message", duration = 5)
     })
     ##ep edit ends here
 }

@@ -1,0 +1,79 @@
+#' Odyssey Shiny - Utility File - Legacy Snippets, partial README
+#'
+#' Contains useful snippets of code that drove part of the development
+#' They are now mostly useful as examples, like a kind of README file
+#'
+
+
+
+
+
+### mod_map.R - hardwired added layers
+
+##### Crete and Mt Athos layer - manual addition clause starts here
+
+# # define Crete geoserver base WMS URL (excluding any parameters or fragments)
+# crete_geoserver_wms_url <- "https://gis.crete.gov.gr/geoserver/wms"
+# # name the mean annual relative humidity layer
+# crete_mean_annual_rltv_hmdty_layer <- "ypenras:ypen_ras_16_mesi_etisia_sxetiki_ygrasia"
+# crete_mean_annual_temperature_layer <- "ypenras:ypen_ras_01_mesi_etisia_thermokrasia_TG"
+# 
+# 
+# # load user spatial datasets (local shape files, hard wired)
+# south_heraklion_corine_data  <- st_read("FULL_PATH_TO//env_pol_corine_18/env_pol_corine_18.shp")  # South Heraklion Corine land cover
+# mt_athos_black_pine_point_data <- st_read("FULL_PATH_TO/mt_athos_black_pine_sampling_map/holy_pine.shp") # Mt Athos black pine occurrences
+# # transform these datasets to WGS84 (EPSG:4326) for Leaflet
+# south_heraklion_corine_wgs84  <- st_transform(south_heraklion_corine_data, crs = 4326)
+# mt_athos_black_pine_wgs84 <- st_transform(mt_athos_black_pine_point_data, crs = 4326)
+# 
+# 
+
+# # Add a WMS layer for Crete's mean annual relative humidity
+#   addWMSTiles(
+#     baseUrl = crete_geoserver_wms_url,
+#     layers = crete_mean_annual_rltv_hmdty_layer,
+#     options = WMSTileOptions(
+#       format = "image/png",        
+#       transparent = TRUE           
+#     ),
+#     attribution = "GIS - Region of Crete",
+#     group = "Crete mean annual relative humidity"
+#   ) |>
+#   
+#   addWMSTiles(
+#     baseUrl = crete_geoserver_wms_url,
+#     layers = crete_mean_annual_temperature_layer,
+#     options = WMSTileOptions(
+#       format = "image/png",        
+#       transparent = TRUE           
+#     ),
+#     attribution = "GIS - Region of Crete",
+#     group = "Crete mean annual temperature"
+#   ) |>
+#   
+#   
+#   # add layer with south_heraklion_corine_data as polygons
+#   addPolygons(
+#     data = south_heraklion_corine_wgs84,
+#     group = "South Heraklion Corine land cover",     # Group name for the layer control toggle
+#     color = "#2b8cbe",            # Border color
+#     weight = 1,
+#     fillColor = "#f7fcb9",        # Fill color
+#     fillOpacity = 0.5,
+#     #popup = ~poly_label_column,   # Change to a column name in your poly_data
+#     highlightOptions = highlightOptions(weight = 4, color = "red", bringToFront = TRUE)
+#   ) |>
+#   
+#   # add layter with mt Athos black pine occurrent points
+#   addCircleMarkers(
+#     data = mt_athos_black_pine_wgs84,
+#     group = "Mt Athos black pine",     # Group name for toggle
+#     radius = 3,                   # Size of the circle
+#     color = "#e31a1c",            # Circle border color
+#     fillColor = "#fb9a99",        # Circle fill color
+#     fillOpacity = 0.8,
+#     weight = 1,
+#     #popup = ~point_label_column   # Change to a column name in your point_data
+#   ) |>
+#   
+##### Crete and Mt Athos layer - manual addition clause ends here
