@@ -86,14 +86,14 @@ app_server <- function(input, output, session) {
     observeEvent(get_draw_input("map_draw_deleted_features", "map-map_draw_deleted_features"), {
         selected_map_area(NULL)
     }, ignoreNULL = TRUE)
-
+    
     observeEvent(input$clear_map_view, {
         selected_map_area(NULL)
         leafletProxy("map") |>
             clearGroup("query_area") |>
             clearGroup("selected_area")
     })
-
+    
     output$map_area_status <- renderText({
         bounds <- selected_map_area()
 
@@ -257,4 +257,48 @@ app_server <- function(input, output, session) {
     observeEvent(input$info_btn, {
         showModal(info_ui())
     })
+    
+    
+    
+    ##ep edit starts here
+    observeEvent(input$add_wms_button, {
+      
+      req(input$wms_url, input$wms_layer,  input$wms_title) #cross-check these values do exit
+      
+      leafletProxy("map") %>% #access and edit the existing map without requiring any redraw
+        
+        clearGroup("dynamic_wms") %>% #clear previous WMS layer, if any
+        
+        addWMSTiles(
+          baseUrl = input$wms_url,
+          layers = input$wms_layer,
+          options = WMSTileOptions(format = "image/png", transparent = TRUE),
+          group = input$wms_title,
+          ) %>% #add the WMS tile
+          
+        addLayersControl(
+        #relad the map base groups
+        baseGroups = MAP_BASE_GROUPS,  #defined in globals.R
+
+        # reload and update the overlay groups
+        overlayGroups = c(MAP_OVERLAY_GROUPS,input$wms_title), #defined in globals.R
+        #overlayGroups = c(overlayGroups,  input$wms_title),
+        
+        #show all layers
+        options = layersControlOptions(collapsed = FALSE)
+        )
+      
+      print(paste(input$wms_title, "WMS layer has been added to the map"))
+      showNotification(
+        ui = paste(input$wms_title, "WMS layer has been added to the map"),
+        type = "message",
+        duration = 5 #seconds the popup will stay alive
+      )
+      
+    })
+    
+    observeEvent(input$zip_file_load_button, {
+      print("shape file has been loaded")
+    })
+    ##ep edit ends here
 }

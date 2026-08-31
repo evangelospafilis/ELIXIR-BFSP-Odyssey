@@ -9,6 +9,9 @@
 #'
 #' @export
 #'
+
+library(sf) #required for the handling and transform of user shape files
+
 map_ui <- function(id) {
 
     ns <- NS(id)
@@ -109,6 +112,7 @@ map_server      <- function(id, df, area_bounds = NULL, selected_country = NULL)
                 view_zoom <- 6.5
             }
 
+            ## Crete and Mt Athos layer - manual addition clause starts here
             
             # define Crete geoserver base WMS URL (excluding any parameters or fragments)
             crete_geoserver_wms_url <- "https://gis.crete.gov.gr/geoserver/wms"
@@ -117,17 +121,31 @@ map_server      <- function(id, df, area_bounds = NULL, selected_country = NULL)
             crete_mean_annual_temperature_layer <- "ypenras:ypen_ras_01_mesi_etisia_thermokrasia_TG"
             
             
+            # load user spatial datasets (local shape files, hard wired)
+            south_heraklion_corine_data  <- st_read("/Users/evangelospafilis/workspace/openstreet_multilayer_map_leaflet/shapefile\ data/env_pol_corine_18/env_pol_corine_18.shp")  # South Heraklion Corine land cover
+            mt_athos_black_pine_point_data <- st_read("/Users/evangelospafilis/workspace/openstreet_multilayer_map_leaflet/shapefile\ data/mt_athos_black_pine_sampling_map/holy_pine.shp") # Mt Athos black pine occurrences
+            # transform these datasets to WGS84 (EPSG:4326) for Leaflet
+            south_heraklion_corine_wgs84  <- st_transform(south_heraklion_corine_data, crs = 4326)
+            mt_athos_black_pine_wgs84 <- st_transform(mt_athos_black_pine_point_data, crs = 4326)
+            
+            ## Crete and Mt Athos layer - manual addition clause ends here
+            
+            
             base_map <- leaflet() |>
               
-                ## add map layers
+                ## add map layers, including topography and satellite view
                 # a minimalist, light-gray map basemap
-                addProviderTiles("CartoDB.Positron", group = "Base Map") |> 
-                # high-quality topographic map, incl. Detailed Terrain: Displays elevation contour lines, hillshading, and accurate water bodies
-                addProviderTiles("OpenTopoMap", group = "Topographic Map") |> 
-                #a dynamic, high-resolution global map layer provided by Esri. It acts as a visual background, combining satellite and aerial photography to provide a near real-time, highly detailed picture of the Earth's landmasses for use in mapping and data analysis)
-                addProviderTiles("Esri.WorldImagery", group = "Satellite Map") |>
+                #addProviderTiles("CartoDB.Positron", group = "Base Map") |> #2026.08.31- CartoDB now requires an API key via a free account creation
+                addTiles(group = "Base Map") |>                     #therefore the Base Map has been switched to the OpenStretMap one (i.e. the Leaflet's default, no API Key required)
               
-
+                # high-quality topographic map, incl. Detailed Terrain: Displays elevation contour lines, hillshading, and accurate water bodies
+                addProviderTiles("OpenTopoMap", group = "Topography") |> 
+                #a dynamic, high-resolution global map layer provided by Esri. It acts as a visual background, combining satellite and aerial photography to provide a near real-time, highly detailed picture of the Earth's landmasses for use in mapping and data analysis)
+                addProviderTiles("Esri.WorldImagery", group = "Satellite") |>
+                
+                
+                ## Crete and Mt Athos layer - manual addition clause starts here
+              
                 # Add a WMS layer for Crete's mean annual relative humidity
                 addWMSTiles(
                   baseUrl = crete_geoserver_wms_url,
@@ -150,17 +168,46 @@ map_server      <- function(id, df, area_bounds = NULL, selected_country = NULL)
                   attribution = "GIS - Region of Crete",
                   group = "Crete mean annual temperature"
                 ) |>
+                
                   
+                # add layer with south_heraklion_corine_data as polygons
+                addPolygons(
+                  data = south_heraklion_corine_wgs84,
+                  group = "South Heraklion Corine land cover",     # Group name for the layer control toggle
+                  color = "#2b8cbe",            # Border color
+                  weight = 1,
+                  fillColor = "#f7fcb9",        # Fill color
+                  fillOpacity = 0.5,
+                  #popup = ~poly_label_column,   # Change to a column name in your poly_data
+                  highlightOptions = highlightOptions(weight = 4, color = "red", bringToFront = TRUE)
+                ) |>
+                  
+                # add layter with mt Athos black pine occurrent points
+                addCircleMarkers(
+                  data = mt_athos_black_pine_wgs84,
+                  group = "Mt Athos black pine",     # Group name for toggle
+                  radius = 3,                   # Size of the circle
+                  color = "#e31a1c",            # Circle border color
+                  fillColor = "#fb9a99",        # Circle fill color
+                  fillOpacity = 0.8,
+                  weight = 1,
+                  #popup = ~point_label_column   # Change to a column name in your point_data
+                ) |>
+                
+                ## Crete and Mt Athos layer - manual addition clause ends here
               
               
                 # Add a control panel to toggle layers on and off
                 addLayersControl(
-                  baseGroups = c("Base Map", "Topographic Map", "Satellite Map"),
-                  overlayGroups = c("Crete mean annual relative humidity","Crete mean annual temperature"),
+                  #baseGroups = c("Base Map", "Topographic Map", "Satellite Map"),
+                  baseGroups = MAP_BASE_GROUPS, #defined in globals.R
+                  #overlayGroups = c("Crete mean annual relative humidity","Crete mean annual temperature","South Heraklion Corine land cover", "Mt Athos black pine"),
+                  overlayGroups = MAP_OVERLAY_GROUPS, #defined in globals.R
                   options = layersControlOptions(collapsed = FALSE)
                 ) |>
-                # Do not show Crete's layers on start up
-                hideGroup(c("Crete mean annual relative humidity","Crete mean annual temperature")) |>
+                
+                # Do not show Crete's and user layers on start up
+                hideGroup(c("Crete mean annual relative humidity","Crete mean annual temperature","South Heraklion Corine land cover", "Mt Athos black pine")) |>
               
                 #set the initial map area
                 setView(view_lng, view_lat, zoom = view_zoom) |>

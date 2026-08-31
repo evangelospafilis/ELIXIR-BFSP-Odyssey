@@ -26,7 +26,8 @@ app_ui <- function(request) {
         sidebar = sidebar(
 
             source_ui("source"),
-            table_options_ui("table_options")
+            table_options_ui("table_options"),
+            user_map_layer_sidebar_options_ui("user_map_layer_options")
 
         ),
 
@@ -38,16 +39,12 @@ app_ui <- function(request) {
 
             # Overview tab ----------
             overview_ui("Overview"),
-
+  
             # Table tab ----------
             table_ui("Table"),
 
             # Map tab ----------
-            map_ui("Map")#,
-
-            # Multilayer - Map tab ----------
-            #map_multi_layer_ui("MultiLayerMap")
-
+            map_ui("Map")
         ),
 
         # Theme ----------
