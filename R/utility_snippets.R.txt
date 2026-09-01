@@ -13,49 +13,64 @@ Pattern: WMS server URL, WMS layer name, title for the layer in Odyssey
 #Temperature, rainfall, humidity etc
 https://data.gov.gr/organization/crete-2026 => search θερμοκρασία, βροχόπτωση, υγρασία κλπ
 e.g. 
+
 https://data.gov.gr/dataset/gis-per-kritis-wms-only-ypenras-ypen_ras_10_oliki_etisia_vroxoptosi_pr/resource/e924e243-1f92-4870-aacf-32d47d687dd3
+
 URL: https://gis.crete.gov.gr/geoserver/wms#ypenras:ypen_ras_10_oliki_etisia_vroxoptosi_PR
-other layers from the GIS of the region of Crete
-Αντίστοιχα:
-ypenras:ypen_ras_16_mesi_etisia_sxetiki_ygrasia
-ypenras:ypen_ras_01_mesi_etisia_thermokrasia_TG
+
+other layers from the GIS server of the region of Crete
+
+WMS server: https://gis.crete.gov.gr/geoserver/wms
+Layer: ypenras:ypen_ras_16_mesi_etisia_sxetiki_ygrasia
+Title: mesi_etisia_sxetiki_ygrasia
+
+
+WMS server: https://gis.crete.gov.gr/geoserver/wms
+Layer: ypenras:ypen_ras_01_mesi_etisia_thermokrasia_TG
+Title: mesi_etisia_thermokrasia
 
 Corine 2018 - South Heraklion
 https://data.gov.gr/dataset/gis-perifereia-kritis-wms-gisvec-env_pol_corine_18/resource/b4daa70c-23e1-4046-b8bb-7b6b42e8bcfa
-https://gis.crete.gov.gr/geoserver/wms
-gisvec:env_pol_corine_18
+
+WMS server: https://gis.crete.gov.gr/geoserver/wms
+Layer: gisvec:env_pol_corine_18
+Title: corine 18 crete
 
 Δάση από κονοφόρα & πλατύφυλλα
 https://data.gov.gr/dataset/gis-perifereia-kritis-wms-gisvec-env_pol_dasi_konoforon_platifillon
-https://gis.crete.gov.gr/geoserver/wms
-gisvec:env_pol_dasi_konoforon_platifillon
-Forests of conifers and broadleaf trees #as title
+
+WMS server: https://gis.crete.gov.gr/geoserver/wms
+Layer: gisvec:env_pol_dasi_konoforon_platifillon
+Title: Forests of conifers and broadleaf trees
+
 To use a shape file:
 shape file web page https://data.gov.gr/dataset/gis-perifereia-kritis-wms-gisvec-env_pol_dasi_konoforon_platifillon/resource/809bc61f-38d9-416c-be0f-6633973f2139
 direct download https://gis.crete.gov.gr/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=gisvec%3Aenv_pol_dasi_konoforon_platifillon&outputFormat=SHAPE-ZIP
 
 Natura 2000 site in Crete
-https://gis.crete.gov.gr/geoserver/wms
-gisvec:env_pol_habitats_18
-Crete Natura 2000 #as title
+WMS server: https://gis.crete.gov.gr/geoserver/wms
+Layer: gisvec:env_pol_habitats_18
+Title: Crete Natura 2000
 
 ## HCMR Geoserver, https://geoserver.hcmr.gr/geoserver/web/wicket/bookmarkable/org.geoserver.web.demo.MapPreviewPage?0&filter=false&filter=false
 
-https://geoserver.hcmr.gr/geoserver/EMODNET_SHARED/wms
-EMODNET_SHARED:All_DDT(measurementscount)
-DDT Measurement count #as title
+WMS server: https://geoserver.hcmr.gr/geoserver/EMODNET_SHARED/wms
+Layer: EMODNET_SHARED:All_DDT(measurementscount)
+Title:DDT Measurement count
 
 
-https://geoserver.hcmr.gr/geoserver/EMODNET_SHARED/wms
-EMODNET_SHARED:DDT_measurements_percentages_2024
-DDT_measurements_percentages_2024 #as title
+WMS server: https://geoserver.hcmr.gr/geoserver/EMODNET_SHARED/wms
+Layer: EMODNET_SHARED:DDT_measurements_percentages_2024
+Title: DDT_measurements_percentages_2024
 
 
-https://geoserver.hcmr.gr/geoserver/EMODNET_SHARED/wms
-EMODNET_SHARED:Cadmium_(measurementscount)_All_Years 
-Cadmium_ measurements count _All_Years #as title
+WMS server: https://geoserver.hcmr.gr/geoserver/EMODNET_SHARED/wms
+Layer: EMODNET_SHARED:Cadmium_(measurementscount)_All_Years 
+Title: Cadmium_ measurements count _All_Years
 
 
+### Legacy snippets
+########################################################################
 
 ### mod_map.R - hardwired added layers
 
