@@ -133,7 +133,7 @@ map_server      <- function(id, df, area_bounds = NULL, selected_country = NULL)
                 addLayersControl(
                   #baseGroups = c("Base Map", "Topographic Map", "Satellite Map"),
                   baseGroups = MAP_BASE_GROUPS, #defined in globals.R
-                  overlayGroups = MAP_OVERLAY_GROUPS, #defined in globals.R
+                  overlayGroups = app_globals$user_custom_layers, #defined in globals.R
                   options = layersControlOptions(collapsed = FALSE)
                 ) |>
                 

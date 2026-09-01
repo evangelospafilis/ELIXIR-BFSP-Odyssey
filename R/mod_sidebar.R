@@ -159,8 +159,8 @@ user_map_layer_sidebar_options_ui   <- function(id) {
     hr(),
     h5("Add WMS Layer", style = "color:#2b5769;"),
     textInput("wms_url", "1. WMS Base URL:", value = "https://gis.crete.gov.gr/geoserver/wms"),
-    textInput("wms_layer", "2. Layer Name / ID:", value = "ypen_ras_10_oliki_etisia_vroxoptosi_PR"),
-    textInput("wms_title", "3. Menu Display Title:", value = "Crete total annual rainfall"),
+    textInput("wms_layer", "2. Layer Name / ID:", value = "gisvec:env_pol_habitats_18"),
+    textInput("wms_title", "3. Menu Display Title:", value = "Crete Natura 2000 sites"),
     actionButton("add_wms_button", "Load WMS Layer"),# class = "btn-primary", style = "width: 100%;"),
     
     hr(),

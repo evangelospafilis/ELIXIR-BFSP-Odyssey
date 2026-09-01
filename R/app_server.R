@@ -261,64 +261,49 @@ app_server <- function(input, output, session) {
     
     
     ##ep edit starts here
-    
-    ###     ###     ###     ###     ###     ###     ###     ###     ###     ###     ###     ### 
-    
+    ################################################################    
     ###add WMS layer handling
+    ################################################################
     observeEvent(input$add_wms_button, {
       
-      req(input$wms_url, input$wms_layer,  input$wms_title) #cross-check these values do exit
+      req(input$wms_url, input$wms_layer, input$wms_title) # cross-check these values do exist
       
-      # 1. Start the proxy of the leaflet map
-      proxy_to_map <- leafletProxy("map") #access and edit the existing map without requiring any redraw
-        
-      # Read the value from our custom environment using app_globals$
-      prev_wms <- app_globals$map_previously_loaded_wms
+      # 1. Update the tracking vector safely in your custom environment BEFORE the map pipeline
+      app_globals$user_custom_layers <- unique(c(app_globals$user_custom_layers, input$wms_title))
       
-      # Clear previously added wms layer ONLY if it is not empty
-      if (exists("prev_wms") && length(prev_wms) == 1 && prev_wms != "") {
-        proxy_to_map <- proxy_to_map %>% clearGroup(prev_wms)
-      }
+      # 2. Start the proxy of the leaflet map
+      proxy_to_map <- leafletProxy("map") 
       
-      proxy_to_map  %>% 
+      # 3. Render tiles and update the layers menu safely
+      proxy_to_map %>% 
         addWMSTiles(
-            baseUrl = input$wms_url,
-            layers = input$wms_layer,
-            options = WMSTileOptions(format = "image/png", transparent = TRUE),
-            group = input$wms_title,
-            ) %>% #add the WMS tile
-            
-          addLayersControl(
-          #relad the map base groups
-          baseGroups = MAP_BASE_GROUPS,  #defined in globals.R
-
-          # reload and update the overlay groups
-          overlayGroups = c(MAP_OVERLAY_GROUPS,input$wms_title), #defined in globals.R
-          #overlayGroups = c(overlayGroups,  input$wms_title),
-        
-          #show all layers
+          baseUrl = input$wms_url,
+          layers = input$wms_layer,
+          options = WMSTileOptions(format = "image/png", transparent = TRUE),
+          group = input$wms_title
+        ) %>% 
+        addLayersControl(
+          baseGroups = MAP_BASE_GROUPS,  # defined in globals.R
+          overlayGroups = app_globals$user_custom_layers, # uses the valid environment variable directly
           options = layersControlOptions(collapsed = FALSE)
         )
       
-      # update the global variable with the new title layer title for the next turn
-      app_globals$map_previously_loaded_wms <- input$wms_title
-      
-      #log
+      # Log output correctly
       print(paste(input$wms_title, "WMS layer has been added to the map"))
       
-      #UI feedback
+      # UI feedback
       showNotification(
         ui = paste(input$wms_title, "WMS layer has been added to the map"),
         type = "message",
-        duration = 5 #seconds the popup will stay alive
+        duration = 5 
       )
       
     })
     
     
-    ###     ###     ###     ###     ###     ###     ###     ###     ###     ###     ###     ### 
-    
+    ####################################################    
     ### Handle local Shapefile uploaded via .zip archive
+    ####################################################
     observeEvent(input$zip_file_load_button, {
       # Check that a file has actually been uploaded
       req(input$zip_file_load_button)
@@ -361,11 +346,9 @@ app_server <- function(input, output, session) {
       proxy_to_map <- leafletProxy("map")
       custom_layer_title <- tools::file_path_sans_ext(user_uploaded_file$name)
       
-      # 6. Clear any previously loaded uploaded vector layers
-      prev_uploaded_group <- app_globals$map_previously_loaded_shapefile
-      if (exists("prev_uploaded_group") && length(prev_uploaded_group) == 1 && prev_uploaded_group != "") {
-        proxy_to_map <- proxy_to_map %>% clearGroup(prev_uploaded_group)
-      }
+      # 6. Update the tracking environment vector with the new shapefile title
+      app_globals$user_custom_layers <- unique(c(app_globals$user_custom_layers, custom_layer_title))
+      
       
       # 7. Create dynamic HTML popups containing all attribute columns
       # We exclude the geometry column itself to keep only alphanumeric data
@@ -412,15 +395,31 @@ app_server <- function(input, output, session) {
           )
       }
       
-      # 8. Refresh map interface layer selectors with global environment profiles
-      proxy_to_map %>% addLayersControl(
-        baseGroups = MAP_BASE_GROUPS,
-        overlayGroups = c(MAP_OVERLAY_GROUPS, custom_layer_title),
-        options = layersControlOptions(collapsed = FALSE)
-      )
+      # # 8. Refresh map interface layer selectors with global environment profiles
+      # proxy_to_map %>% addLayersControl(
+      #   baseGroups = MAP_BASE_GROUPS,
+      #   #overlayGroups = c(app_globals$app_globals$user_custom_layers, custom_layer_title),
+      #   overlayGroups = c(app_globals$user_custom_layers, custom_layer_title),
+      #   options = layersControlOptions(collapsed = FALSE)
+      # )
+      # 
+      # 8. Calculate bounding box boundaries for the automatic flight animation
+      map_bounds <- sf::st_bbox(shape_data_wgs84)
       
-      # 9. Register track coordinates to custom variable environment for the next iteration cycle
-      app_globals$map_previously_loaded_shapefile <- custom_layer_title
+      # 8b. Refresh the control of the map layers and smoothly animate map frame view to focus on the shapefile
+      proxy_to_map %>% 
+        addLayersControl(
+          baseGroups = MAP_BASE_GROUPS,
+          overlayGroups = app_globals$user_custom_layers,
+          options = layersControlOptions(collapsed = FALSE)
+        ) %>%
+        flyToBounds(
+          lng1 = as.numeric(map_bounds[["xmin"]]),
+          lat1 = as.numeric(map_bounds[["ymin"]]),
+          lng2 = as.numeric(map_bounds[["xmax"]]),
+          lat2 = as.numeric(map_bounds[["ymax"]])
+        )
+      
       
       # Log
       print(paste("Successfully rendered:", custom_layer_title))
@@ -428,5 +427,29 @@ app_server <- function(input, output, session) {
       # UI confirmation message
       showNotification(paste("Successfully rendered:", custom_layer_title), type = "message", duration = 5)
     })
+    
+    
+    
+    ################################################################################
+    ### Event listerner to automatically restore user layers if GBIF/ENA queries trigger a map redraw
+    ################################################################################
+    observeEvent(input$map_spatial, {
+      # Execute only if the user has actually accumulated custom layers
+      if (exists("app_globals") && length(app_globals$user_custom_layers) > 0) {
+        
+        # We use a short delay (0.5s) to ensure the redrawn map is fully loaded in the browser first
+        shiny::delay(500, {
+          proxy_restore <- leafletProxy("map")
+          
+          # Force refresh the Layers Control interface to include the user history
+          proxy_restore %>% addLayersControl(
+            baseGroups = MAP_BASE_GROUPS,
+            overlayGroups = c(app_globals$user_custom_layers),
+            options = layersControlOptions(collapsed = FALSE)
+          )
+        })
+      }
+    })
+    
     ##ep edit ends here
 }
