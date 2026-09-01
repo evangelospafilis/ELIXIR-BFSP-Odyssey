@@ -14,5 +14,8 @@ MAP_BASE_GROUPS <- c("Base Map", "Topography", "Satellite")
 # Create a custom environment to store dynamic app variables
 app_globals <- new.env()
 
+#House keeping: toggle debugging clauses on/off
+app_globals$debug_is_enabled <- FALSE
+
 # Initialize any dynamic variables inside this environment
 app_globals$user_custom_layers <- character(0) #store previously loaded WMS layer titles for the layer menu

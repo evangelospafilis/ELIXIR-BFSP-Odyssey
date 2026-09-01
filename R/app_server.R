@@ -431,23 +431,50 @@ app_server <- function(input, output, session) {
     
     
     ################################################################################
-    ### Event listerner to automatically restore user layers if GBIF/ENA queries trigger a map redraw
+    ### Event listener to automatically restore user layers whenever the map is redrawn, e.g. upon GBIF/ENA queries
+    ### Auto-Restore Engine: Triggers every time the map is redrawn, e.g. by GBIF/ENA queries
     ################################################################################
-    observeEvent(input$map_spatial, {
-      # Execute only if the user has actually accumulated custom layers
+    observeEvent(input$map_bounds, {
+      
+      # Execute only if the user has accumulated custom layers in the environment
       if (exists("app_globals") && length(app_globals$user_custom_layers) > 0) {
         
-        # We use a short delay (0.5s) to ensure the redrawn map is fully loaded in the browser first
-        shiny::delay(500, {
-          proxy_restore <- leafletProxy("map")
+        # Access the fresh map proxy instance without breaking the layout
+        proxy_restore <- leafletProxy("map")
+        
+        # RESTORE WMS TILES DYNAMICALLY
+        # Loop through accumulated layers and re-inject them if they were WMS
+        for (layer_name in app_globals$user_custom_layers) {
           
-          # Force refresh the Layers Control interface to include the user history
-          proxy_restore %>% addLayersControl(
+          if (app_globals$debug_is_enabled) {
+            
+            # Log
+            print(paste("Map has been redrawn, restoring layer:", layer_name))
+            
+            # UI confirmation message
+            showNotification(paste("Map has been redrawn, restoring layer:", layer_name), type = "message", duration = 5)
+          }
+          
+          # If the layer corresponds to the user's input variables, we rebuild the tile
+          if (layer_name == input$wms_title) {
+            proxy_restore <- proxy_restore %>% 
+              addWMSTiles(
+                baseUrl = input$wms_url,
+                layers = input$wms_layer,
+                options = WMSTileOptions(format = "image/png", transparent = TRUE),
+                group = layer_name
+              )
+          }
+        }
+        
+        # RE-UPDATE LAYERS CONTROL
+        # Re-inject the layers menu configuration into the newly rendered map
+        proxy_restore %>% 
+          addLayersControl( # <--- Αντικατάστησέ το με: 
             baseGroups = MAP_BASE_GROUPS,
-            overlayGroups = c(app_globals$user_custom_layers),
+            overlayGroups = app_globals$user_custom_layers,
             options = layersControlOptions(collapsed = FALSE)
           )
-        })
       }
     })
     
