@@ -470,7 +470,7 @@ app_server <- function(input, output, session) {
         # RE-UPDATE LAYERS CONTROL
         # Re-inject the layers menu configuration into the newly rendered map
         proxy_restore %>% 
-          addLayersControl( # <--- Αντικατάστησέ το με: 
+          addLayersControl(
             baseGroups = MAP_BASE_GROUPS,
             overlayGroups = app_globals$user_custom_layers,
             options = layersControlOptions(collapsed = FALSE)
